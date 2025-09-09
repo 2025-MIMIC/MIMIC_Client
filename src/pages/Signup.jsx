@@ -50,7 +50,7 @@ const Line1 = styled.span`
     width:164px;
     margin-right:184px;
     height:0px;
-
+    
 `
 const Line2 = styled.span`
     border:1px solid #ECECEC;
@@ -81,10 +81,10 @@ export default function Signup(props){
                 <Input type="text" placeholder="아이디 입력"></Input>
                 <Input type="password" placeholder="비밀번호 입력" />
                 <Input type="password" placeholder="비밀번호 확인" />
-                <Button>로그인</Button>
+                <Button>회원가입</Button>
                 <Line1></Line1>
                 <Line2></Line2>
-                <Button2>회원가입 하기</Button2>
+                <Button2>로그인 하기</Button2>
             </Container>
         </Body>
     )
