@@ -1,16 +1,16 @@
 import React from 'react'
-import Chat from '../src/pages/Chat'
-import './App.css'
 import { LogIn } from 'lucide-react'
-import Login from './pages/Login'
-import Signup from './pages/Signup'
+import Login from '../src/pages/Login'
+import Chat from '../src/pages/Chat'
 
 function App() {
   return (
     <div className="App">
-      <Chat />
-      <Login/>
-      <Signup/>
+
+      {/* <Chat /> */}
+      {/* <Login/> */}
+      <Chat/>
+
     </div>
   )
 }
