@@ -2,11 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { generateText } from "../api/gemini";
 import styled from "styled-components";
 import Sidebar from "../components/Sidebar";
+import enterIcon from "../assets/enter_icon.svg";
 
 const ChatContainer = styled.div`
   display: flex;
   height: 100vh;
-  background-color: #f8f9fa;
+  background-color: #fff;
 `;
 
 const MainSection = styled.div`
@@ -18,7 +19,7 @@ const MainSection = styled.div`
 
 const ChatHeader = styled.div`
   height: 64px;
-  background-color: #ffffff;
+  background-color: #fff;
   border-bottom: 1px solid #e0e0e0;
   display: flex;
   align-items: center;
@@ -38,8 +39,8 @@ const ChatMessages = styled.div`
 
 const Message = styled.div`
   align-self: ${(props) => (props.isUser ? "flex-end" : "flex-start")};
-  background-color: ${(props) => (props.isUser ? "#0078ff" : "#e9ecef")};
-  color: ${(props) => (props.isUser ? "#fff" : "#000")};
+  background-color: ${(props) => (props.isUser ? "#e9ecef" : "#7189BF")};
+  color: ${(props) => (props.isUser ? "#000" : "#fff")};
   padding: 10px 14px;
   border-radius: 12px;
   max-width: 70%;
@@ -67,17 +68,17 @@ const ChatInput = styled.textarea`
 `;
 
 const SendButton = styled.button`
-  background-color: #0078ff;
+  background-color: #96B6FF;
   color: white;
   border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
+  padding: 12px 12px;
+  border-radius: 10000px;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #005fcc;
+    background-color: #7189BF;
   }
 `;
 
@@ -85,6 +86,8 @@ function Chat() {
   const [messages, setMessages] = useState([
     { sender: "ai", text: "안녕하세요! 무엇을 도와드릴까요?" },
   ]);
+  const [aiName, setAiName] = useState("MIMIC AI");
+  const [aiProfile, setAiProfile] = useState("친절하고 도움이 되는 AI입니다.");
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
@@ -102,7 +105,9 @@ function Chat() {
     setIsTyping(true);
 
     try {
-      const aiResponse = await generateText(inputText);
+      // AI 프로파일을 프롬프트 앞에 포함하여 AI 동작을 제어합니다.
+      const promptWithProfile = `${aiProfile}\n\n${inputText}`;
+      const aiResponse = await generateText(promptWithProfile);
       setMessages((prev) => [...prev, { sender: "ai", text: aiResponse }]);
     } catch (error) {
       setMessages((prev) => [
@@ -123,7 +128,15 @@ function Chat() {
 
   return (
     <ChatContainer>
-      <Sidebar />
+      <Sidebar
+        userName={"사용자"}
+        aiName={aiName}
+        aiProfile={aiProfile}
+        onUpdateAI={({ name, profile }) => {
+          if (name) setAiName(name);
+          if (profile) setAiProfile(profile);
+        }}
+      />
       <MainSection>
         <ChatHeader>MIMIC Chat</ChatHeader>
 
@@ -144,7 +157,9 @@ function Chat() {
             onKeyDown={handleKeyPress}
             placeholder="메시지를 입력하세요..."
           />
-          <SendButton onClick={handleSend}>전송</SendButton>
+          <SendButton onClick={handleSend}>
+            <img src={enterIcon} alt="전송" style={{ width: 21, height: 21 }} />
+          </SendButton>
         </ChatInputContainer>
       </MainSection>
     </ChatContainer>
