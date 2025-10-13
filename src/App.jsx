@@ -10,8 +10,7 @@ function App() {
 
       {/* <Chat /> */}
       {/* <Login/> */}
-      {/* <Signup/> */}
-      {/* <Chat/> */}
+      <Signup/>
 
     </div>
   )
