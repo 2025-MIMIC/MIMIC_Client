@@ -1,7 +1,12 @@
 // Sidebar.jsx
 import React from 'react';
-import { Search, Edit3, Trash2, Settings, User } from 'lucide-react';
+import newChatIcon from '../assets/newchat_icon.svg';
+import searchIcon from '../assets/search_icon.svg';
+import editIcon from '../assets/edit_icon.svg';
+import deleteIcon from '../assets/delete_icon.svg';
+import avatarIcon from '../assets/react.svg';
 import styled from 'styled-components';
+import AIModal from './AIModal';
 
 const SidebarContainer = styled.div`
   width: 288px;
@@ -43,14 +48,14 @@ const MenuButton = styled.button`
   border-radius: 8px;
   transition: background-color 0.2s;
   cursor: pointer;
-  color: ${props => props.danger ? '#dc2626' : '#374151'};
+  color: ${props => props.danger ? '#FF0000' : '#374151'};
 
   &:hover {
     background-color: #f9fafb;
   }
 
   span {
-    color: ${props => props.danger ? '#dc2626' : '#374151'};
+    color: ${props => props.danger ? '#FF0000' : '#374151'};
   }
 `;
 
@@ -107,7 +112,23 @@ const SessionLastMessage = styled.div`
   text-overflow: ellipsis;
 `;
 
-const Sidebar = ({ userName, chatSessions = [], activeSessionId }) => {
+const Sidebar = ({ userName, chatSessions = [], activeSessionId, aiName = 'MIMIC AI', aiProfile = '친절하고 도움이 되는 AI입니다.', onUpdateAI }) => {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [localName, setLocalName] = React.useState(aiName);
+  const [localProfile, setLocalProfile] = React.useState(aiProfile);
+
+  React.useEffect(() => {
+    setLocalName(aiName);
+    setLocalProfile(aiProfile);
+  }, [aiName, aiProfile]);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+  const saveModal = () => {
+    if (onUpdateAI) onUpdateAI({ name: localName, profile: localProfile });
+    closeModal();
+  };
+
   return (
     <SidebarContainer>
       {/* 헤더 */}
@@ -119,22 +140,22 @@ const Sidebar = ({ userName, chatSessions = [], activeSessionId }) => {
       <MenuContainer>
         <MenuSection>
           <MenuButton>
-            <Settings className="w-5 h-5 text-gray-600" />
+            <img src={newChatIcon} alt="새 채팅" style={{ width: 20, height: 20 }} />
             <span>새 채팅</span>
           </MenuButton>
           
           <MenuButton>
-            <Search className="w-5 h-5 text-gray-600" />
+            <img src={searchIcon} alt="검색" style={{ width: 20, height: 20 }} />
             <span>대화 검색</span>
           </MenuButton>
           
-          <MenuButton>
-            <Edit3 className="w-5 h-5 text-gray-600" />
+          <MenuButton onClick={openModal}>
+            <img src={editIcon} alt="수정" style={{ width: 20, height: 20 }} />
             <span>AI 프롬포트 수정</span>
           </MenuButton>
           
           <MenuButton danger>
-            <Trash2 className="w-5 h-5" />
+            <img src={deleteIcon} alt="삭제" style={{ width: 20, height: 20 }} />
             <span>대화 삭제</span>
           </MenuButton>
         </MenuSection>
@@ -147,7 +168,7 @@ const Sidebar = ({ userName, chatSessions = [], activeSessionId }) => {
               active={session.id === activeSessionId}
             >
               <Avatar>
-                <User className="w-4 h-4 text-gray-600" />
+                <img src={avatarIcon} alt="아바타" style={{ width: 16, height: 16 }} />
               </Avatar>
               <SessionInfo>
                 <SessionTitle>{session.title}</SessionTitle>
@@ -159,8 +180,22 @@ const Sidebar = ({ userName, chatSessions = [], activeSessionId }) => {
           ))}
         </SessionList>
       </MenuContainer>
+      {isModalOpen && (
+        <AIModal
+          isOpen={isModalOpen}
+          name={localName}
+          profile={localProfile}
+          setName={setLocalName}
+          setProfile={setLocalProfile}
+          onClose={closeModal}
+          onSave={saveModal}
+        />
+      )}
     </SidebarContainer>
   );
 };
 
 export default Sidebar;
+
+
+
