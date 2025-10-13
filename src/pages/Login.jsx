@@ -5,8 +5,15 @@ const Body = styled.div`
     display:flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    width: 100vw;   /* 가로 전체 */
+    height: 100vh;  /* 세로 전체 */
+    margin: 0;
+    padding: 0;
     background-color: #fff;
+
+    position: fixed;  /* 🔑 화면 전체 덮기 */
+    top: 0;
+    left: 0;
 `
 const Container = styled.div`
     width: 350px;
@@ -80,8 +87,6 @@ export default function Login(props){
                 <Input type="text" placeholder="아이디 입력"></Input>
                 <Input type="password" placeholder="비밀번호 입력" />
                 <Button>로그인</Button>
-                <Line1></Line1>
-                <Line2></Line2>
                 <Button2>회원가입 하기</Button2>
             </Container>
         </Body>

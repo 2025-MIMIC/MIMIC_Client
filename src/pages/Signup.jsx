@@ -5,8 +5,15 @@ const Body = styled.div`
     display:flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    width: 100vw;   /* 가로 전체 */
+    height: 100vh;  /* 세로 전체 */
+    margin: 0;
+    padding: 0;
     background-color: #fff;
+
+    position: fixed;  /* 🔑 화면 전체 덮기 */
+    top: 0;
+    left: 0;
 `
 const Container = styled.div`
     width: 350px;
@@ -35,12 +42,15 @@ const Input = styled.input`
     padding-left:22px
 `
 const Button = styled.button`
-    margin-top:36px;
+    margin: 36px auto;   /* 좌우 auto → 중앙 배치 */
     background-color:#96B6FF;
     color:white;
     width:348px;
     height:52px;
-    margin-bottom:36px
+    border:none;
+    border-radius:8px;
+    display:block;       /* auto가 먹으려면 block */
+
 `
 const Line1 = styled.span`
     border:1px solid #ECECEC;
@@ -50,7 +60,6 @@ const Line1 = styled.span`
     width:164px;
     margin-right:184px;
     height:0px;
-    
 `
 const Line2 = styled.span`
     border:1px solid #ECECEC;
@@ -63,12 +72,14 @@ const Line2 = styled.span`
     margin-left:184px;
 `
 const Button2 = styled.button`
-    margin-top:47px;
+    margin: 20px auto;   /* 중앙 정렬 */
     background-color:white;
     color:#AAAAAA;
     width:348px;
     height:52px;
     border:0.5px solid #AAAAAA;
+    border-radius:8px;
+    display:block;
 `
 
 export default function Signup(props){
@@ -82,8 +93,6 @@ export default function Signup(props){
                 <Input type="password" placeholder="비밀번호 입력" />
                 <Input type="password" placeholder="비밀번호 확인" />
                 <Button>회원가입</Button>
-                <Line1></Line1>
-                <Line2></Line2>
                 <Button2>로그인 하기</Button2>
             </Container>
         </Body>
