@@ -5,13 +5,12 @@ const Body = styled.div`
     display:flex;
     justify-content: center;
     align-items: center;
-    width: 100vw;   /* 가로 전체 */
-    height: 100vh;  /* 세로 전체 */
+    width: 100vw;
+    height: 100vh;
     margin: 0;
     padding: 0;
     background-color: #fff;
-
-    position: fixed;  /* 🔑 화면 전체 덮기 */
+    position: fixed;
     top: 0;
     left: 0;
 `
@@ -32,14 +31,14 @@ const Message = styled.p`
     margin-bottom:36px;
 `
 const Input = styled.input`
-    width:100%;
-    margin-bottom:16px;
+    width: 348px;
+    height: 52px;
+    padding-left: 22px;
     border: 1px solid #BDBDBD;
     border-radius: 8px;
-    font-size:16px;
-    width:348px;
-    height:52px;
-    padding-left:22px
+    font-size: 16px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
 `
 const Button = styled.button`
     margin-top:36px;
@@ -48,26 +47,6 @@ const Button = styled.button`
     width:348px;
     height:52px;
     margin-bottom:36px
-`
-const Line1 = styled.span`
-    border:1px solid #ECECEC;
-    display:flex;
-    align-items:center;
-    text-align:center;
-    width:164px;
-    margin-right:184px;
-    height:0px;
-
-`
-const Line2 = styled.span`
-    border:1px solid #ECECEC;
-    border:1px solid #ECECEC;
-    display:flex;
-    align-items:center;
-    text-align:center;
-    width:164px;
-    height:0px;
-    margin-left:184px;
 `
 const Button2 = styled.button`
     margin-top:47px;
@@ -79,13 +58,28 @@ const Button2 = styled.button`
 `
 
 export default function Login(props){
+    const [username,setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    
+
+    const handleUsername = (e) => {
+        const value = e.target.value;
+        const english = value.replace(/[^a-zA-Z0-9]/g,'');
+
+        setUsername(english);
+    }
+    const handlePassword = (e) => {
+        const value = e.target.value;
+        const english = value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
+        setPassword(english);
+    }
     return(
         <Body>
             <Container>
                 <Title>미믹미믹</Title>
                 <Message>보고 싶었던 “그대"와 대화해 보세요!</Message>
-                <Input type="text" placeholder="아이디 입력"></Input>
-                <Input type="password" placeholder="비밀번호 입력" />
+                <Input type="text" placeholder="아이디 입력" value={username} onChange={handleUsername}></Input>
+                <Input type="password" placeholder="비밀번호 입력" value={password} onChange={handlePassword}/>
                 <Button>로그인</Button>
                 <Button2>회원가입 하기</Button2>
             </Container>
