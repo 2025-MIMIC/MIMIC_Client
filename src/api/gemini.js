@@ -7,16 +7,15 @@ export async function generateText(prompt) {
     });
 
     const data = await res.json();
-    console.log("📦 받은 데이터:", data);
+    console.log("get data:", data);
 
-    // ✅ Gemini API 응답 구조
     const aiText =
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
       "응답을 생성할 수 없습니다.";
 
     return aiText;
   } catch (error) {
-    console.error("❌ generateText 에러:", error);
+    console.error("generateText error:", error);
     return "오류가 발생했습니다.";
   }
 }
