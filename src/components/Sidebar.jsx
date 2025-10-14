@@ -112,7 +112,22 @@ const SessionLastMessage = styled.div`
   text-overflow: ellipsis;
 `;
 
-const Sidebar = ({ userName, chatSessions = [], activeSessionId, aiName = 'MIMIC AI', aiProfile = '친절하고 도움이 되는 AI입니다.', onUpdateAI }) => {
+/**
+ * 수정된 부분: 필요한 콜백들 모두 props로 받도록 추가했습니다.
+ * onNewChat, onSelectSession, onDeleteSession, onDeleteAll 등이 Chat.jsx에서 전달되어야 합니다.
+ */
+const Sidebar = ({
+  userName,
+  chatSessions = [],
+  activeSessionId,
+  aiName = 'MIMIC AI',
+  aiProfile = '친절하고 도움이 되는 AI입니다.',
+  onNewChat,
+  onSelectSession,
+  onDeleteSession,
+  onDeleteAll,
+  onUpdateAI
+}) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [localName, setLocalName] = React.useState(aiName);
   const [localProfile, setLocalProfile] = React.useState(aiProfile);
@@ -139,24 +154,32 @@ const Sidebar = ({ userName, chatSessions = [], activeSessionId, aiName = 'MIMIC
       {/* 메뉴 항목 */}
       <MenuContainer>
         <MenuSection>
-          <MenuButton>
+          <MenuButton onClick={() => (typeof onNewChat === 'function' ? onNewChat() : null)}>
             <img src={newChatIcon} alt="새 채팅" style={{ width: 20, height: 20 }} />
             <span>새 채팅</span>
           </MenuButton>
-          
+
           <MenuButton>
             <img src={searchIcon} alt="검색" style={{ width: 20, height: 20 }} />
             <span>대화 검색</span>
           </MenuButton>
-          
+
           <MenuButton onClick={openModal}>
             <img src={editIcon} alt="수정" style={{ width: 20, height: 20 }} />
             <span>AI 프롬포트 수정</span>
           </MenuButton>
-          
-          <MenuButton danger>
+
+          {/* 전체 삭제: onDeleteAll만 호출하게 수정 */}
+          <MenuButton danger onClick={() => {
+            if (typeof onDeleteAll === 'function') {
+              // 사용자 확인창 권장
+              if (window.confirm('모든 대화를 삭제하고 초기화하시겠습니까?')) {
+                onDeleteAll();
+              }
+            }
+          }}>
             <img src={deleteIcon} alt="삭제" style={{ width: 20, height: 20 }} />
-            <span>대화 삭제</span>
+            <span>대화 전체 삭제</span>
           </MenuButton>
         </MenuSection>
 
@@ -166,6 +189,7 @@ const Sidebar = ({ userName, chatSessions = [], activeSessionId, aiName = 'MIMIC
             <SessionItem
               key={session.id}
               active={session.id === activeSessionId}
+              onClick={() => (typeof onSelectSession === 'function' ? onSelectSession(session.id) : null)}
             >
               <Avatar>
                 <img src={avatarIcon} alt="아바타" style={{ width: 16, height: 16 }} />
@@ -176,6 +200,16 @@ const Sidebar = ({ userName, chatSessions = [], activeSessionId, aiName = 'MIMIC
                   <SessionLastMessage>{session.lastMessage}</SessionLastMessage>
                 )}
               </SessionInfo>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (typeof onDeleteSession === 'function') onDeleteSession(session.id);
+                }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+                aria-label="삭제"
+              >
+                <img src={deleteIcon} alt="삭제" style={{ width: 16, height: 16 }} />
+              </button>
             </SessionItem>
           ))}
         </SessionList>
@@ -196,6 +230,3 @@ const Sidebar = ({ userName, chatSessions = [], activeSessionId, aiName = 'MIMIC
 };
 
 export default Sidebar;
-
-
-
