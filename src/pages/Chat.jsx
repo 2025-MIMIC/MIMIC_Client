@@ -90,45 +90,38 @@ const SendButton = styled.button`
 
 function Chat() {
   const [aiName, setAiName] = useState("미믹");
-  const [aiProfile, setAiProfile] = useState("윤지 쌤 안녕하세여~");
+  const [aiProfile, setAiProfile] = useState("일반적인, 자연스러운 말투로 대화합니다."); // 기본 말투
   
-  // localStorage 키 상수임. 데이터 저장/불러오기에 사용하는 거
   const SESSIONS_KEY = "mimic_sessions";
   const AI_NAME_KEY = "mimic_aiName";
-  const AI_PROFILE_KEY = "mimic_aiProfile";
 
-  // 현재 채팅 세션의 메시지 목록
   const [messages, setMessages] = useState([]);
-  // 사용자 입력 텍스트
   const [inputText, setInputText] = useState("");
-  // AI 응답 대기 중 표시 여부
   const [isTyping, setIsTyping] = useState(false);
-  // 메시지 목록의 끝을 참조하여 자동 스크롤에 사용
   const messagesEndRef = useRef(null);
-  // 전체 채팅 세션 목록
   const [chatSessions, setChatSessions] = useState([]);
-  // 현재 활성화된 세션 ID
   const [activeSessionId, setActiveSessionId] = useState(null);
 
-  // 새 메시지가 추가될 때마다 채팅창을 맨 아래로 자동 스크롤
+  // 세션별 aiProfile 저장
+  const getProfileKey = (id) => `mimic_aiProfile_${id}`;
+
+  // 스크롤 자동 이동
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 컴포넌트 마운트 시 localStorage에서 세션과 프로필 불러오기
+  // localStorage 불러오기
   useEffect(() => {
-    // 저장된 세션 목록 불러오기
     const sessionsRaw = localStorage.getItem(SESSIONS_KEY);
     let sessions = [];
     if (sessionsRaw) {
       try {
         sessions = JSON.parse(sessionsRaw);
-      } catch (e) {
+      } catch {
         sessions = [];
       }
     }
 
-    // 세션이 없으면 기본 세션 생성
     if (!sessions || sessions.length === 0) {
       const id = String(Date.now());
       const initialMessage = { sender: "ai", text: "원하는 말투 예시를 입력하거나, 특징을 말씀해 주세요." };
@@ -136,154 +129,165 @@ function Chat() {
       sessions = [sessionMeta];
       localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
       localStorage.setItem(`mimic_messages_${id}`, JSON.stringify([initialMessage]));
+      localStorage.setItem(getProfileKey(id), "일반적인, 자연스러운 말투로 대화합니다.");
     }
 
     setChatSessions(sessions);
-    
-    // 저장된 이름과 프로필 불러오기
-    const storedAiName = localStorage.getItem(AI_NAME_KEY) || "TEST AI";
-    const storedAiProfile = localStorage.getItem(AI_PROFILE_KEY) || "원하는 말투 예시를 입력하거나, 특징을 말씀해 주세요." ;
-    setAiName(storedAiName);
-    setAiProfile(storedAiProfile);
 
-    // 첫 번째 세션을 활성화
+    const storedAiName = localStorage.getItem(AI_NAME_KEY) || "미믹";
+    setAiName(storedAiName);
+
     const activeId = sessions[0].id;
     setActiveSessionId(activeId);
 
-    // 해당 세션의 메시지 불러오기
     const msgsRaw = localStorage.getItem(`mimic_messages_${activeId}`);
+    const storedProfile = localStorage.getItem(getProfileKey(activeId)) || "일반적인, 자연스러운 말투로 대화합니다.";
+    setAiProfile(storedProfile);
+
     if (msgsRaw) {
       try {
         setMessages(JSON.parse(msgsRaw));
-      } catch (e) {
+      } catch {
         setMessages([]);
       }
-    } else {
-      setMessages([]);
     }
   }, []);
 
-  // 이름/프로필이 변경될 때마다 localStorage에 저장
+  // 이름 변경 시 저장
   useEffect(() => {
     localStorage.setItem(AI_NAME_KEY, aiName);
-    localStorage.setItem(AI_PROFILE_KEY, aiProfile);
-    
-    if (activeSessionId && aiName) {
-      const updated = chatSessions.map(s => 
-        s.id === activeSessionId ? { ...s, title: `${aiName}` } : s
-      );
-      setChatSessions(updated);
-      localStorage.setItem(SESSIONS_KEY, JSON.stringify(updated));
-    }
-  }, [aiName, aiProfile]);
+  }, [aiName]);
 
-  // 메시지 전송 처리 함수
+  // aiProfile 변경 시 세션별로 저장
+  useEffect(() => {
+    if (activeSessionId) {
+      localStorage.setItem(getProfileKey(activeSessionId), aiProfile);
+    }
+  }, [aiProfile, activeSessionId]);
+
+  // 💬 메시지 전송
   const handleSend = async () => {
-    // 빈 메시지는 예외처리
     if (!inputText.trim()) return;
 
-    // 사용자 메시지를 즉시 화면에 표시
     const userMessage = { sender: "user", text: inputText };
     setMessages((prev) => [...prev, userMessage]);
     setInputText("");
     setIsTyping(true);
 
     try {
-      // AI 프로필을 프롬프트 앞에 포함하여 AI의 말투를 제어
-      const promptWithProfile = `${aiProfile}\n\n${inputText}`;
-      const aiResponse = await generateText(promptWithProfile);
-      
-      // AI 응답을 메시지 목록에 추가
-      const newMessages = [...messages, { sender: "user", text: inputText }, { sender: "ai", text: aiResponse }];
+      const recentMessages = messages.slice(-10);
+      const conversationHistory = recentMessages
+        .map(msg => `${msg.sender === "user" ? "수민" : aiName}: ${msg.text}`)
+        .join("\n");
+
+      const systemPrompt = `
+당신은 ${aiName}이라는 이름의 AI 챗봇입니다.  
+아래는 이 세션의 말투와 성격에 대한 설명입니다:
+"${aiProfile}"
+
+- 이 말투를 기반으로 자연스럽고 감정이 느껴지는 대화를 이어갑니다.  
+- 새로운 대화를 만들어가는 느낌으로 한 가지 질문을 던지세요. 
+`;
+
+      const prompt = `
+${systemPrompt}
+
+이전 대화:
+${conversationHistory}
+
+새 메시지:
+수민: ${inputText}
+${aiName}:
+`;
+
+      const aiResponse = await generateText(prompt);
+
+      const newMessages = [
+        ...messages,
+        { sender: "user", text: inputText },
+        { sender: "ai", text: aiResponse.trim() },
+      ];
       setMessages(newMessages);
 
-      // 현재 활성 세션의 메시지를 localStorage에 저장
       if (activeSessionId) {
         localStorage.setItem(`mimic_messages_${activeSessionId}`, JSON.stringify(newMessages));
-        
-        // 세션의 마지막 메시지 업데이트 (사이드바 미리보기용)
-        const updated = chatSessions.map(s => s.id === activeSessionId ? { ...s, lastMessage: aiResponse } : s);
+
+        const updated = chatSessions.map((s) =>
+          s.id === activeSessionId ? { ...s, lastMessage: aiResponse } : s
+        );
         setChatSessions(updated);
         localStorage.setItem(SESSIONS_KEY, JSON.stringify(updated));
       }
-    } catch (error) {
-      // 에러 발생 시 에러 메시지 표시
+    } catch {
       setMessages((prev) => [
         ...prev,
-        { sender: "ai", text: "⚠️ 오류가 발생했습니다. 다시 시도해주세요." },
+        { sender: "ai", text: "⚠️ 오류가 발생했습니다. 다시 시도해 주세요." },
       ]);
     } finally {
       setIsTyping(false);
     }
   };
 
-  // 새 채팅 세션 생성
+  // ✅ 새 세션 만들 때마다 독립적인 aiProfile 생성
   const handleNewChat = () => {
-    const id = String(Date.now()); // 현재 시간을 고유 ID로 사용
-    const initialMessage = { sender: "ai", text: "원하는 말투 예시를 입력하거나, 특징을 말씀해 주세요."};
-    const newSession = { 
-      id, 
-      title: aiName ? `${aiName}` : "새 대화",
-      lastMessage: initialMessage.text 
-    };
+    const id = String(Date.now());
+    const initialMessage = { sender: "ai", text: "원하는 말투 예시를 입력하거나, 특징을 말씀해 주세요." };
+    const newSession = { id, title: aiName, lastMessage: initialMessage.text };
 
-    // 새 세션을 목록 맨 앞에 추가 (최신순 정렬)
     const updated = [newSession, ...chatSessions];
     setChatSessions(updated);
+
     localStorage.setItem(SESSIONS_KEY, JSON.stringify(updated));
     localStorage.setItem(`mimic_messages_${id}`, JSON.stringify([initialMessage]));
-    
-    // 새 세션을 활성화
+    localStorage.setItem(getProfileKey(id), "일반적인, 자연스러운 말투로 대화합니다."); // 말투 저장
+
     setActiveSessionId(id);
+    setAiProfile("일반적인, 자연스러운 말투로 대화합니다."); //현재 세션용 초기화
     setMessages([initialMessage]);
   };
 
-  // 특정 세션 선택 시 해당 세션의 메시지 불러오기
   const handleSelectSession = (id) => {
     setActiveSessionId(id);
+
     const msgsRaw = localStorage.getItem(`mimic_messages_${id}`);
+    const storedProfile = localStorage.getItem(getProfileKey(id)) || "일반적인, 자연스러운 말투로 대화합니다.";
+    setAiProfile(storedProfile);
+
     if (msgsRaw) {
       try {
         setMessages(JSON.parse(msgsRaw));
-      } catch (e) {
+      } catch {
         setMessages([]);
       }
-    } else {
-      setMessages([]);
     }
   };
 
-  // 특정 세션 삭제
   const handleDeleteSession = (id) => {
-    // 세션 목록에서 해당 세션 제거
     const filtered = chatSessions.filter(s => s.id !== id);
     setChatSessions(filtered);
     localStorage.setItem(SESSIONS_KEY, JSON.stringify(filtered));
     localStorage.removeItem(`mimic_messages_${id}`);
-    
-    // 삭제된 세션이 현재 활성 세션이면 다른 세션으로 전환
+    localStorage.removeItem(getProfileKey(id)); // ✅ 프로필도 삭제
+
     if (activeSessionId === id) {
       if (filtered.length > 0) {
         handleSelectSession(filtered[0].id);
       } else {
-        handleNewChat(); // 남은 세션이 없으면 새 세션 생성
+        handleNewChat();
       }
     }
   };
 
-  // 모든 세션 삭제
   const handleDeleteAll = () => {
-    // 모든 세션의 메시지 데이터 삭제
-    const ids = chatSessions.map(s => s.id);
-    ids.forEach(id => localStorage.removeItem(`mimic_messages_${id}`));
+    chatSessions.forEach(s => {
+      localStorage.removeItem(`mimic_messages_${s.id}`);
+      localStorage.removeItem(getProfileKey(s.id));
+    });
     localStorage.removeItem(SESSIONS_KEY);
     setChatSessions([]);
-    
-    // 새로운 세션 생성
     handleNewChat();
   };
 
-  // Enter 키 입력 처리 (Shift+Enter는 줄바꿈, Enter만은 전송)
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -293,9 +297,8 @@ function Chat() {
 
   return (
     <ChatContainer>
-      {/* 왼쪽 사이드바 - 세션 목록, AI 설정 등 */}
       <Sidebar
-        userName={"유저이름입력받아야됨"}
+        userName={"수민"} //여기 나중에 로그인할 때 받은 값으로 바꿔야 함
         aiName={aiName}
         aiProfile={aiProfile}
         chatSessions={chatSessions}
@@ -309,25 +312,20 @@ function Chat() {
           if (profile) setAiProfile(profile);
         }}
       />
-      
-      {/* 메인 채팅 영역 */}
+
       <MainSection>
         <ChatHeader>MIMIC Chat</ChatHeader>
 
-        {/* 메시지 목록 */}
         <ChatMessages>
           {messages.map((msg, idx) => (
             <Message key={idx} isUser={msg.sender === "user"}>
               {msg.text}
             </Message>
           ))}
-          {/* AI 응답 대기 중 표시 */}
-          {isTyping && <Message>💬 AI가 응답을 작성 중...</Message>}
-          {/* 자동 스크롤을 위한 참조 요소 */}
+          {isTyping && <Message>💬 {aiName}가 생각 중...</Message>}
           <div ref={messagesEndRef} />
         </ChatMessages>
 
-        {/* 메시지 입력 영역 */}
         <ChatInputContainer>
           <ChatInput
             value={inputText}
