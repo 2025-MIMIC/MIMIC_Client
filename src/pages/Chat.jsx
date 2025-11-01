@@ -165,22 +165,36 @@ function Chat() {
     }
   }, [aiProfile, activeSessionId]);
 
-  // 💬 메시지 전송
+  //  메시지 전송
   const handleSend = async () => {
-    if (!inputText.trim()) return;
+  if (!inputText.trim()) return;
 
-    const userMessage = { sender: "user", text: inputText };
-    setMessages((prev) => [...prev, userMessage]);
+  // 첫 사용자 메시지라면 → aiProfile로 저장
+  if (messages.length === 1 && messages[0].sender === "ai") {
+    setAiProfile(inputText.trim());
+    localStorage.setItem(getProfileKey(activeSessionId), inputText.trim());
+    setMessages((prev) => [
+      ...prev,
+      { sender: "user", text: inputText },
+      { sender: "ai", text: "말투를 적용했습니다. 이제 대화를 시작해볼까요?" },
+    ]);
     setInputText("");
-    setIsTyping(true);
+    return;
+  }
 
-    try {
-      const recentMessages = messages.slice(-10);
-      const conversationHistory = recentMessages
-        .map(msg => `${msg.sender === "user" ? "수민" : aiName}: ${msg.text}`)
-        .join("\n");
+  // 이후는 기존 로직 그대로
+  const userMessage = { sender: "user", text: inputText };
+  setMessages((prev) => [...prev, userMessage]);
+  setInputText("");
+  setIsTyping(true);
 
-      const systemPrompt = `
+  try {
+    const recentMessages = messages.slice(-10);
+    const conversationHistory = recentMessages
+      .map(msg => `${msg.sender === "user" ? "수민" : aiName}: ${msg.text}`)
+      .join("\n");
+
+    const systemPrompt = `
 당신은 ${aiName}이라는 이름의 AI 챗봇입니다.  
 아래는 이 세션의 말투와 성격에 대한 설명입니다:
 "${aiProfile}"
@@ -189,7 +203,7 @@ function Chat() {
 - 새로운 대화를 만들어가는 느낌으로 한 가지 질문을 던지세요. 
 `;
 
-      const prompt = `
+    const prompt = `
 ${systemPrompt}
 
 이전 대화:
@@ -200,35 +214,36 @@ ${conversationHistory}
 ${aiName}:
 `;
 
-      const aiResponse = await generateText(prompt);
+    const aiResponse = await generateText(prompt);
 
-      const newMessages = [
-        ...messages,
-        { sender: "user", text: inputText },
-        { sender: "ai", text: aiResponse.trim() },
-      ];
-      setMessages(newMessages);
+    const newMessages = [
+      ...messages,
+      { sender: "user", text: inputText },
+      { sender: "ai", text: aiResponse.trim() },
+    ];
+    setMessages(newMessages);
 
-      if (activeSessionId) {
-        localStorage.setItem(`mimic_messages_${activeSessionId}`, JSON.stringify(newMessages));
+    if (activeSessionId) {
+      localStorage.setItem(`mimic_messages_${activeSessionId}`, JSON.stringify(newMessages));
 
-        const updated = chatSessions.map((s) =>
-          s.id === activeSessionId ? { ...s, lastMessage: aiResponse } : s
-        );
-        setChatSessions(updated);
-        localStorage.setItem(SESSIONS_KEY, JSON.stringify(updated));
-      }
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        { sender: "ai", text: "⚠️ 오류가 발생했습니다. 다시 시도해 주세요." },
-      ]);
-    } finally {
-      setIsTyping(false);
+      const updated = chatSessions.map((s) =>
+        s.id === activeSessionId ? { ...s, lastMessage: aiResponse } : s
+      );
+      setChatSessions(updated);
+      localStorage.setItem(SESSIONS_KEY, JSON.stringify(updated));
     }
-  };
+  } catch {
+    setMessages((prev) => [
+      ...prev,
+      { sender: "ai", text: "⚠️ 오류가 발생했습니다. 다시 시도해 주세요." },
+    ]);
+  } finally {
+    setIsTyping(false);
+  }
+};
 
-  // ✅ 새 세션 만들 때마다 독립적인 aiProfile 생성
+
+  // 새 세션 만들 때마다 독립적인 aiProfile 생성
   const handleNewChat = () => {
     const id = String(Date.now());
     const initialMessage = { sender: "ai", text: "원하는 말투 예시를 입력하거나, 특징을 말씀해 주세요." };
@@ -267,7 +282,7 @@ ${aiName}:
     setChatSessions(filtered);
     localStorage.setItem(SESSIONS_KEY, JSON.stringify(filtered));
     localStorage.removeItem(`mimic_messages_${id}`);
-    localStorage.removeItem(getProfileKey(id)); // ✅ 프로필도 삭제
+    localStorage.removeItem(getProfileKey(id)); //프로필도 삭제
 
     if (activeSessionId === id) {
       if (filtered.length > 0) {
