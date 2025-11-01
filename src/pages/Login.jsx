@@ -1,5 +1,6 @@
 import { useState } from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 const Body = styled.div`
     display:flex;
@@ -60,7 +61,7 @@ const Button2 = styled.button`
 export default function Login(props){
     const [username,setUsername] = useState("");
     const [password, setPassword] = useState("");
-    
+    const navigate = useNavigate();
 
     const handleUsername = (e) => {
         const value = e.target.value;
@@ -81,7 +82,7 @@ export default function Login(props){
                 <Input type="text" placeholder="아이디 입력" value={username} onChange={handleUsername}></Input>
                 <Input type="password" placeholder="비밀번호 입력" value={password} onChange={handlePassword}/>
                 <Button>로그인</Button>
-                <Button2>회원가입 하기</Button2>
+                <Button2 onClick={() => navigate('/signup')}>회원가입 하기</Button2>
             </Container>
         </Body>
     )

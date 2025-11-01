@@ -1,5 +1,6 @@
 import { useState } from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 const Body = styled.div`
     display:flex;
@@ -68,6 +69,7 @@ export default function Signup(props){
     const [username,setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [passwordcheck, setPasswordcheck] = useState("");
+    const navigate = useNavigate();
 
     const handleUsername = (e) => {
         const value = e.target.value;
@@ -95,7 +97,7 @@ export default function Signup(props){
                 <Input type="password" placeholder="비밀번호 입력" value={password} onChange={handlePassword}/>
                 <Input type="password" placeholder="비밀번호 확인" value={passwordcheck} onChange={handlePasswordcheck}/>
                 <Button>회원가입</Button>
-                <Button2>로그인 하기</Button2>
+                <Button2 onClick={() => navigate('/login')}>로그인 하기</Button2>
             </Container>
         </Body>
     )
