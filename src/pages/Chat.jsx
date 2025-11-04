@@ -188,6 +188,18 @@ function Chat() {
   setInputText("");
   setIsTyping(true);
 
+  await fetch("http://localhost:3001/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      session_id: activeSessionId,
+      sender: "user",
+      text: inputText,
+    }),
+  });
+
   try {
     const recentMessages = messages.slice(-10);
     const conversationHistory = recentMessages
