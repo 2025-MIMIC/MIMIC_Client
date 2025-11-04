@@ -11,27 +11,30 @@ const Body = styled.div`
     margin: 0;
     padding: 0;
     background-color: #fff;
-
     position: fixed;
     top: 0;
     left: 0;
-`
+`;
+
 const Container = styled.div`
     width: 350px;
     text-align: center;
-`
+`;
+
 const Title = styled.p`
     font-size:40px;
     font-weight: bold;
-    margin-bottom:0
-`
+    margin-bottom:0;
+`;
+
 const Message = styled.p`
     margin-top:0;
     font-size:16px;
     font-weight:semi-bold;
     color:gray;
     margin-bottom:36px;
-`
+`;
+
 const Input = styled.input`
     width: 348px;
     height: 52px;
@@ -41,7 +44,8 @@ const Input = styled.input`
     font-size: 16px;
     margin-bottom: 16px;
     box-sizing: border-box;
-`
+`;
+
 const Button = styled.button`
     margin: 36px auto;
     background-color:#96B6FF;
@@ -51,8 +55,7 @@ const Button = styled.button`
     border:none;
     border-radius:8px;
     display:block;
-
-`
+`;
 
 const Button2 = styled.button`
     margin: 20px auto;
@@ -63,42 +66,93 @@ const Button2 = styled.button`
     border:0.5px solid #AAAAAA;
     border-radius:8px;
     display:block;
-`
+`;
 
-export default function Signup(props){
-    const [username,setUsername] = useState("");
+export default function Signup() {
+    const [name, setName] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [passwordcheck, setPasswordcheck] = useState("");
+    const [message, setMessage] = useState("");
     const navigate = useNavigate();
 
     const handleUsername = (e) => {
         const value = e.target.value;
-        const english = value.replace(/[^a-zA-Z0-9]/g,'');
-
+        const english = value.replace(/[^a-zA-Z0-9]/g, '');
         setUsername(english);
-    }
+    };
+
     const handlePassword = (e) => {
         const value = e.target.value;
         const english = value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
         setPassword(english);
-    }
+    };
+
     const handlePasswordcheck = (e) => {
         const value = e.target.value;
         const english = value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
         setPasswordcheck(english);
-    }
-    return(
+    };
+
+    const handleSubmit = async () => {
+        if (password !== passwordcheck) {
+            setMessage("❌ 비밀번호가 일치하지 않습니다.");
+            return;
+        }
+
+        try {
+            const res = await fetch("http://localhost:3001/api/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: username, password, name })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setMessage("❌ " + (data.error || "회원가입 실패"));
+            } else {
+                setMessage("✅ 회원가입 성공!");
+                setTimeout(() => navigate("/login"), 1500);
+            }
+        } catch (err) {
+            console.error(err);
+            setMessage("❌ 서버 오류");
+        }
+    };
+
+    return (
         <Body>
             <Container>
                 <Title>미믹미믹</Title>
-                <Message>보고 싶었던 “그대"와 대화해 보세요!</Message>
-                <Input type="text" placeholder="이름 입력"></Input>
-                <Input type="text" placeholder="아이디 입력" value={username} onChange={handleUsername}></Input>
-                <Input type="password" placeholder="비밀번호 입력" value={password} onChange={handlePassword}/>
-                <Input type="password" placeholder="비밀번호 확인" value={passwordcheck} onChange={handlePasswordcheck}/>
-                <Button>회원가입</Button>
-                <Button2 onClick={() => navigate('/login')}>로그인 하기</Button2>
+                {message && <Message>{message}</Message>}
+                <Input
+                    type="text"
+                    placeholder="이름 입력"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                />
+                <Input
+                    type="text"
+                    placeholder="아이디 입력"
+                    value={username}
+                    onChange={handleUsername}
+                />
+                <Input
+                    type="password"
+                    placeholder="비밀번호 입력"
+                    value={password}
+                    onChange={handlePassword}
+                />
+                <Input
+                    type="password"
+                    placeholder="비밀번호 확인"
+                    value={passwordcheck}
+                    onChange={handlePasswordcheck}
+                />
+                <Button onClick={handleSubmit}>회원가입</Button>
+                <Button2 onClick={() => navigate("/login")}>로그인 하기</Button2>
             </Container>
         </Body>
-    )
+    );
 }
