@@ -1,10 +1,10 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17,7 +17,7 @@ const ModalBox = styled.div`
   background: white;
   border-radius: 12px;
   padding: 22px;
-  box-shadow: 0 14px 44px rgba(0,0,0,0.16);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.16);
 `;
 
 const ModalHeader = styled.div`
@@ -67,16 +67,25 @@ const ModalButton = styled.button`
   border: none;
   cursor: pointer;
   transition: background-color 0.15s ease;
-  background: ${props => props.primary ? '#96B6FF' : '#f3f4f6'};
-  color: ${props => props.primary ? 'white' : '#111827'};
+  background: ${(props) => (props.primary ? "#96B6FF" : "#f3f4f6")};
+  color: ${(props) => (props.primary ? "white" : "#111827")};
 
   &:hover {
-    background: ${props => props.primary ? '#7189BF' : '#e5e7eb'};
+    background: ${(props) => (props.primary ? "#7189BF" : "#e5e7eb")};
   }
 `;
 
-export default function AIModal({ isOpen, name, profile, onClose, onSave, setName, setProfile }) {
+export default function AIModal({
+  isOpen,
+  name,
+  profile,
+  onClose,
+  onSave,
+  setName,
+  setProfile,
+}) {
   if (!isOpen) return null;
+
   return (
     <ModalOverlay>
       <ModalBox>
@@ -84,17 +93,30 @@ export default function AIModal({ isOpen, name, profile, onClose, onSave, setNam
 
         <ModalField>
           <ModalLabel>AI 이름</ModalLabel>
-          <ModalInput value={name} onChange={(e) => setName(e.target.value)} />
+          <ModalInput
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="예: 코딩도우미 AI"
+          />
         </ModalField>
 
         <ModalField>
           <ModalLabel>AI 특징 / 프롬프트</ModalLabel>
-          <ModalTextarea value={profile} onChange={(e) => setProfile(e.target.value)} />
+          <ModalTextarea
+            value={profile}
+            onChange={(e) => setProfile(e.target.value)}
+            placeholder="예: 코드 리뷰를 친절하게 해주는 AI입니다."
+          />
         </ModalField>
 
         <ModalActions>
           <ModalButton onClick={onClose}>취소</ModalButton>
-          <ModalButton primary onClick={onSave}>저장</ModalButton>
+          <ModalButton
+            primary
+            onClick={() => onSave(name, profile)}
+          >
+            저장
+          </ModalButton>
         </ModalActions>
       </ModalBox>
     </ModalOverlay>
