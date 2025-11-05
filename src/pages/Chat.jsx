@@ -1,4 +1,3 @@
-// Chat.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { generateText } from "../api/gemini";
 import styled from "styled-components";
@@ -110,7 +109,6 @@ function Chat() {
   const [chatSessions, setChatSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
 
-  // 스크롤 자동 이동
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
