@@ -106,7 +106,7 @@ export default function Login(){
 
             if (res.ok) {
                 alert(`${data.user.name}님 환영합니다!`);
-                navigate("/chat"); // 로그인 후 이동할 페이지 (원하는 경로로 변경)
+                navigate("/chat", { state: { userName: data.user.name } }); // 로그인 후 이동할 페이지 (원하는 경로로 변경)
             } else {
                 alert(data.error || "로그인 실패");
             }
