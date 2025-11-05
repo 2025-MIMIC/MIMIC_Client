@@ -1,11 +1,10 @@
-// Sidebar.jsx
 import React from 'react';
 import newChatIcon from '../assets/newchat_icon.svg';
 import searchIcon from '../assets/search_icon.svg';
 import editIcon from '../assets/edit_icon.svg';
 import deleteIcon from '../assets/delete_icon.svg';
 import styled from 'styled-components';
-import AIModal from './AIModal'; // 만약 다른 모달을 사용중이면 경로 맞춰줘
+import AIModal from './AIModal';
 
 const SidebarContainer = styled.div`
   width: 288px;
@@ -195,7 +194,6 @@ const Sidebar = ({
         </MenuSection>
 
         <SessionList>
-          { /* chatSessions이 없거나 빈 배열일 때도 안전하게 동작 */ }
           {chatSessions.map((session) => (
             <SessionItem
               key={session.id}
