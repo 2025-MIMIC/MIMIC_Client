@@ -3,6 +3,7 @@ import { generateText } from "../api/gemini";
 import styled from "styled-components";
 import Sidebar from "../components/Sidebar";
 import enterIcon from "../assets/enter_icon.svg";
+import { useLocation } from "react-router-dom";
 
 const ChatContainer = styled.div`
   display: flex;
@@ -89,6 +90,8 @@ const SendButton = styled.button`
 `;
 
 function Chat() {
+  const location = useLocation();
+  const userName = location.state?.userName;
   const [aiName, setAiName] = useState("미믹");
   const [aiProfile, setAiProfile] = useState("일반적인, 자연스러운 말투로 대화합니다."); // 기본 말투
   
@@ -203,7 +206,7 @@ function Chat() {
   try {
     const recentMessages = messages.slice(-10);
     const conversationHistory = recentMessages
-      .map(msg => `${msg.sender === "user" ? "수민" : aiName}: ${msg.text}`)
+      .map(msg => `${msg.sender === "user" ? userName : aiName}: ${msg.text}`)
       .join("\n");
 
     const systemPrompt = `
@@ -222,7 +225,7 @@ ${systemPrompt}
 ${conversationHistory}
 
 새 메시지:
-수민: ${inputText}
+${userName}: ${inputText}
 ${aiName}:
 `;
 
@@ -325,7 +328,7 @@ ${aiName}:
   return (
     <ChatContainer>
       <Sidebar
-        userName={"수민"} //여기 나중에 로그인할 때 받은 값으로 바꿔야 함
+        userName={userName} //여기 나중에 로그인할 때 받은 값으로 바꿔야 함
         aiName={aiName}
         aiProfile={aiProfile}
         chatSessions={chatSessions}
@@ -349,7 +352,7 @@ ${aiName}:
               {msg.text}
             </Message>
           ))}
-          {isTyping && <Message>💬 {aiName}가 생각 중...</Message>}
+          {isTyping && <Message>💬 {aiName}이 생각 중...</Message>}
           <div ref={messagesEndRef} />
         </ChatMessages>
 
