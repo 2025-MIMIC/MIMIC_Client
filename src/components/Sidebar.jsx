@@ -4,9 +4,8 @@ import newChatIcon from '../assets/newchat_icon.svg';
 import searchIcon from '../assets/search_icon.svg';
 import editIcon from '../assets/edit_icon.svg';
 import deleteIcon from '../assets/delete_icon.svg';
-import avatarIcon from '../assets/react.svg';
 import styled from 'styled-components';
-import AIModal from './AIModal';
+import AIModal from './AIModal'; // 만약 다른 모달을 사용중이면 경로 맞춰줘
 
 const SidebarContainer = styled.div`
   width: 288px;
@@ -83,11 +82,14 @@ const SessionItem = styled.div`
 const Avatar = styled.div`
   width: 32px;
   height: 32px;
-  background-color: #d1d5db;
+  background-color: ${props => props.bgColor || '#d1d5db'};
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 600;
+  color: white;
+  font-size: 14px;
 `;
 
 const SessionInfo = styled.div`
@@ -112,13 +114,26 @@ const SessionLastMessage = styled.div`
   text-overflow: ellipsis;
 `;
 
+/** session id -> 고정 색 반환 */
+const COLORS = [
+  '#93C5FD', '#FCA5A5', '#FDBA74', '#FCD34D', '#86EFAC',
+  '#A5B4FC', '#F9A8D4', '#67E8F9', '#D8B4FE'
+];
+const getStableColor = (id) => {
+  if (!id) return COLORS[0];
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return COLORS[Math.abs(hash) % COLORS.length];
+};
+
 /**
- * 수정된 부분: 필요한 콜백들 모두 props로 받도록 추가했습니다.
- * onNewChat, onSelectSession, onDeleteSession, onDeleteAll 등이 Chat.jsx에서 전달되어야 합니다.
+ * 안전 처리: chatSessions 기본값 빈 배열로 설정
  */
 const Sidebar = ({
   userName,
-  chatSessions = [],
+  chatSessions = [],     // ✅ 기본값 추가 (undefined 방지)
   activeSessionId,
   aiName = 'MIMIC AI',
   aiProfile = '친절하고 도움이 되는 AI입니다.',
@@ -146,12 +161,10 @@ const Sidebar = ({
 
   return (
     <SidebarContainer>
-      {/* 헤더 */}
       <SidebarHeader>
         <SidebarTitle>{userName}</SidebarTitle>
       </SidebarHeader>
 
-      {/* 메뉴 항목 */}
       <MenuContainer>
         <MenuSection>
           <MenuButton onClick={() => (typeof onNewChat === 'function' ? onNewChat() : null)}>
@@ -169,11 +182,9 @@ const Sidebar = ({
             <span>AI 프롬포트 수정</span>
           </MenuButton>
 
-          {/* 전체 삭제: onDeleteAll만 호출하게 수정 */}
           <MenuButton danger onClick={() => {
             if (typeof onDeleteAll === 'function') {
-              // 사용자 확인창 권장
-              if (window.confirm('모든 대화를 삭제하고 초기화하시겠습니까?')) {
+              if (window.confirm('모든 대화를 삭제하고 새 채팅으로 초기화하시겠습니까?')) {
                 onDeleteAll();
               }
             }
@@ -183,19 +194,19 @@ const Sidebar = ({
           </MenuButton>
         </MenuSection>
 
-        {/* 세션 목록 */}
         <SessionList>
+          { /* chatSessions이 없거나 빈 배열일 때도 안전하게 동작 */ }
           {chatSessions.map((session) => (
             <SessionItem
               key={session.id}
               active={session.id === activeSessionId}
               onClick={() => (typeof onSelectSession === 'function' ? onSelectSession(session.id) : null)}
             >
-              <Avatar>
-                <img src={avatarIcon} alt="아바타" style={{ width: 16, height: 16 }} />
+              <Avatar bgColor={getStableColor(String(session.id))}>
+                {session.title?.charAt(0)?.toUpperCase() || 'C'}
               </Avatar>
               <SessionInfo>
-                <SessionTitle>{session.title}</SessionTitle>
+                <SessionTitle>{session.title || session.aiName || '새 대화'}</SessionTitle>
                 {session.lastMessage && (
                   <SessionLastMessage>{session.lastMessage}</SessionLastMessage>
                 )}
@@ -203,6 +214,11 @@ const Sidebar = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  // 삭제시 최소 1개 보장
+                  if (!chatSessions || chatSessions.length <= 1) {
+                    alert('채팅방은 최소 1개 이상 존재해야 합니다.');
+                    return;
+                  }
                   if (typeof onDeleteSession === 'function') onDeleteSession(session.id);
                 }}
                 style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
@@ -214,6 +230,7 @@ const Sidebar = ({
           ))}
         </SessionList>
       </MenuContainer>
+
       {isModalOpen && (
         <AIModal
           isOpen={isModalOpen}
