@@ -113,11 +113,11 @@ const SessionLastMessage = styled.div`
   text-overflow: ellipsis;
 `;
 
-/** session id -> 고정 색 반환 */
 const COLORS = [
   '#93C5FD', '#FCA5A5', '#FDBA74', '#FCD34D', '#86EFAC',
   '#A5B4FC', '#F9A8D4', '#67E8F9', '#D8B4FE'
 ];
+
 const getStableColor = (id) => {
   if (!id) return COLORS[0];
   let hash = 0;
@@ -127,12 +127,14 @@ const getStableColor = (id) => {
   return COLORS[Math.abs(hash) % COLORS.length];
 };
 
-/**
- * 안전 처리: chatSessions 기본값 빈 배열로 설정
- */
+// 함수형 컴포넌트 + Hooks 사용
+// useState → 모달 상태 및 AI 이름/프로필 관리
+// useEffect → 부모 props 변경 시 내부 상태 동기화
+//props 기반 설계
+
 const Sidebar = ({
   userName,
-  chatSessions = [],     // ✅ 기본값 추가 (undefined 방지)
+  chatSessions = [],
   activeSessionId,
   aiName = 'MIMIC AI',
   aiProfile = '친절하고 도움이 되는 AI입니다.',

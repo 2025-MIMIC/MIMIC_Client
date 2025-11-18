@@ -86,6 +86,16 @@ export default function AIModal({
 }) {
   if (!isOpen) return null;
 
+//조건부렌더링
+//   모달이 열리지 않은 상태에서는 DOM에 렌더링하지 않음 → 불필요한 메모리 사용 최소화
+// React에서 일반적으로 모달, 드롭다운 등 표시 여부를 제어할 때 사용
+
+// props
+// 부모 컴포넌트에서 상태(state)와 함수(callback)를 전달받음
+// 상태 끌어올리기(Lifting State Up) 패턴 적용:
+// AIModal 내부가 아닌 Sidebar가 실제 데이터 관리
+// AIModal은 단순 UI + 이벤트 전달 역할만 수행
+
   return (
     <ModalOverlay>
       <ModalBox>
